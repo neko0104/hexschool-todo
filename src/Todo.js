@@ -2,8 +2,10 @@ import logo from "./img/logo.svg";
 import work2 from "./img/work2.png";
 import { useState, useEffect } from "react";
 import { v4 } from "uuid";
+import { useNavigate } from "react-router-dom";
 
 export default function Todo() {
+  let navigate = useNavigate()
   const [activePage, setActivePage] = useState("全部");
   const [list, setList] = useState([
     { text: "吃飽飽", status: true, id: 0 },
@@ -29,11 +31,26 @@ export default function Todo() {
         <ul>
           <li className="todo_sm">
             <a href="#">
-              <span>王小明的代辦</span>
+              <span>{sessionStorage.getItem("nickname")}的代辦</span>
             </a>
           </li>
           <li>
-            <a href="#loginPage">登出</a>
+            <a href="#" onClick={(e)=>{
+              e.preventDefault();
+              fetch("https://todoo.5xcamp.us/users/sign_out",{
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+              },
+              method:"DELETE",
+              })
+              .then(res=>{
+                if(res.status===200) navigate("/");
+                if(res.status===401) alert("登出失敗");
+                console.log(res)
+                console.log(res.json())
+              })
+            }}>登出</a>
           </li>
         </ul>
       </nav>

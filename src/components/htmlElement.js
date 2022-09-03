@@ -1,8 +1,11 @@
 
-export function Input ({type , register , cssClass , placeholder , id ,...rest}){
+export function Input ({labelCssClass , labelText , type , register , cssClass , placeholder , id ,...rest}){
 
     return (
+    <>
+        <label className={labelCssClass} htmlFor={id}>{labelText}</label>
         <input type={type} {...register}{...rest} className={cssClass} placeholder={placeholder} id={id}/>
+    </>
     )
 }
 

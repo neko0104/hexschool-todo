@@ -1,25 +1,23 @@
 import {
   Link,
   Route,
-  HashRouter,
   Routes,
-  Router,
   Outlet,
-  NavLink,
 } from "react-router-dom";
 
 import Login from "./Login";
 import SignUp from "./SignUp";
 import Todo from "./Todo";
 import "./css/all.scss";
+import { useState, createContext } from "react";
+
+const Token = createContext();
 
 export default function App() {
+  const [token, setToken] = useState();
+
   function DefLayout() {
-    return (
-      <div>
-        <Outlet />
-      </div>
-    );
+    return <Outlet />
   }
 
   function Notfound() {
@@ -32,13 +30,15 @@ export default function App() {
   }
 
   return (
+    <Token.Provider value={token}>
     <Routes>
-      <Route path={""||"/"} element={<DefLayout />} >
-      <Route path="signup" element={<SignUp />} />
-      <Route index element={<Login/>}/>
-      <Route path="todo" element={<Todo />}></Route>
+      <Route path={""||"/"} element={<Outlet />} >
+      <Route path="signup" element={<SignUp setToken={setToken}/>} />
+      <Route index element={<Login setToken={setToken}/>}/>
+      <Route path="todo" element={<Todo setToken={setToken}/>}></Route>
       </Route>
       <Route path="*" element={<Notfound />} />
     </Routes>
+    </Token.Provider>
   );
 }
