@@ -43,15 +43,28 @@ export default function Todo({setToken}) {
       method:"GET",
     })
     const fetchData = await call.json()
-    console.log(fetchData)
+    // console.log(fetchData)
     if(call.status!==200) return alert(fetchData.message)
-    if(call.status===200) setList(fetchData.todos)
+    if(call.status===200) {
+      fetchData.todos.sort()
+      setList(fetchData.todos)
+    }
   }
 
 
   const removeFinish = (e) => {
     e.preventDefault();
-    setList(list.filter((v) => v.completed_at === false));
+    // console.log(list.filter(v=>v.completed_at!==null))
+    list.filter(v=>v.completed_at!==null).map(async v=>{
+      const call =  await fetchFn(`todos/${v.id}`,"DELETE",true,myToken)
+      const fetchData = await call.json() 
+      if(call.status!==200) return
+      if(call.status===200) {
+        console.log("刪除成功")
+        setList(list.filter(v=>v.completed_at===null))
+      }
+    })
+    //setList(list.filter((v) => v.completed_at === false));
   };
 
   function Navbar() {
@@ -123,14 +136,20 @@ export default function Todo({setToken}) {
 
   //各個小item
   function ListDetail({ text, status, index, setList, list }) {
-    const changeStatus = (e) => {
-      const { checked } = e.target;
-      let ta = {
-        content: text,
-        status: checked,
-        id: parseInt(e.target.getAttribute("index")),
-      };
-    };
+    const changeStatus = async (e) => {
+      let id = e.target.getAttribute("index")
+      const call = await fetchFn(`todos/${id}/toggle`,"PATCH",true,myToken)
+      const fetchData = await call.json()
+      if(call.status!==200) return alert("好像怪怪的")
+      if(call.status===200) {
+        console.log(fetchData)
+        setList(list.map((v,i)=>{
+          if(fetchData.id===v.id)return fetchData
+          return v
+        }))
+      }
+    }
+
     const removeOne = async(e) => {
       e.preventDefault();
       let id = e.target.closest("label").getAttribute("index")
@@ -211,7 +230,7 @@ export default function Todo({setToken}) {
         })
       : activePage === "待完成"
       ? list
-          .filter((v) => v.completed_at == false)
+          .filter((v) => v.completed_at === null)
           .map((v, i) => {
             return (
               <ListDetail
@@ -225,7 +244,7 @@ export default function Todo({setToken}) {
             );
           })
       : list
-          .filter((v) => v.completed_at == true)
+          .filter((v) => v.completed_at !== null)
           .map((v, i) => {
             return (
               <ListDetail
