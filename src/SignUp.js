@@ -24,8 +24,10 @@ export default function SignUp({setToken}) {
     })
 
     const fetchData = await call.json()
-    if(call.status!==200) return alert("註冊失敗")
-    if(call.status===200){
+    console.log(call)
+    console.log(fetchData)
+    if(call.status!==201) return alert("註冊失敗")
+    if(call.status===201){
       setToken(call.headers.get("authorization"))
       sessionStorage.setItem("nickname",fetchData.nickname)
       localStorage.setItem("token",call.headers.get("authorization"))
@@ -77,7 +79,7 @@ export default function SignUp({setToken}) {
                   }),
                 }}
               />
-              { errors.name?.message && <span>{errors.name?.message }</span>}
+              { errors.nickname?.message && <span>{errors.nickname?.message }</span>}
 
               <Input
                 labelCssClass="formControls_label"
