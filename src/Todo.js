@@ -109,7 +109,7 @@ export default function Todo({setToken}) {
   function InputArea({ setList, list }) {
   
     const addText = async(data) => {
-      console.log(data)
+      // console.log(data)
       const call = await fetchFn("todos","POST",true,myToken,{"todo":data})
       const fetchData = await call.json()
       // console.log(call)
@@ -290,7 +290,7 @@ export default function Todo({setToken}) {
                 <div className="todoList_statistics">
                   <p>
                     {" "}
-                    {list.filter((v) => v.completed_at !== null).length} 個已完成項目
+                    {list.filter((v) => v.completed_at === null).length} 個待完成項目
                   </p>
                   <a href="#" onClick={removeFinish}>
                     清除已完成項目
