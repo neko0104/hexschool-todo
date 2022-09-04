@@ -9,16 +9,11 @@ import Login from "./Login";
 import SignUp from "./SignUp";
 import Todo from "./Todo";
 import "./css/all.scss";
-import { useState, createContext } from "react";
-
-const Token = createContext();
+import { useEffect, useState,} from "react";
+import { Token } from "./components/htmlElement";
 
 export default function App() {
   const [token, setToken] = useState();
-
-  function DefLayout() {
-    return <Outlet />
-  }
 
   function Notfound() {
     return (

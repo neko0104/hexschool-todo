@@ -1,13 +1,15 @@
 import workImg from "./img/workImg.png"
 import Logo from "./img/logo.svg"
 import { Link, useNavigate } from "react-router-dom"
-import { Input, Button } from "./components/htmlElement"
+import { Input, Button, Token } from "./components/htmlElement"
 import { useForm } from "react-hook-form"
+import { useContext, useEffect } from "react"
 
 
 export default function Login ({setToken}) {
-    let navigate = useNavigate()
+    const navigate = useNavigate()
     const { register, handleSubmit, formState: { errors } } = useForm();
+    const myToken = useContext(Token);
     const onSubmit = async(data)=>{
         // alert(JSON.stringify(data))
         const call = await fetch("https://todoo.5xcamp.us/users/sign_in",{
@@ -20,13 +22,22 @@ export default function Login ({setToken}) {
         })
         
         const fetchData = await call.json()
-        setToken(call.headers.get("authorization"))
-        if(call.status===401)return alert(fetchData.message)
+        if(call.status!==200)return alert("登入失敗")
         if(call.status===200){
-            sessionStorage.setItem("nickname",fetchData.nickname)
-            navigate("/todo")
+          // console.log(fetchData)
+          setToken(call.headers.get("authorization"))
+          localStorage.setItem("token",call.headers.get("authorization"))
+          sessionStorage.setItem("nickname",fetchData.nickname)
+          navigate("/todo")
         }
     }
+    
+    useEffect(()=>{
+      if(localStorage.getItem("token")){
+        setToken(localStorage.getItem("token"))
+        navigate("/todo")
+      }
+    },[])
 
     return (
       <div id="loginPage" className="bg-yellow">

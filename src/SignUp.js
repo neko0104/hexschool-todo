@@ -1,27 +1,37 @@
-import { useState } from "react";
+
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
-import { Input, Button } from "./components/htmlElement";
+import { Link,useNavigate } from "react-router-dom";
+import { Input, Button, Token } from "./components/htmlElement";
 import logo from "./img/logo.svg";
 import workImg from "./img/workImg.png";
 
-export default function SignUp() {
+export default function SignUp({setToken}) {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const navigate = useNavigate();
 
   const submit = async(data)=>{
-    const fetch=await fetch("https://todoo.5xcamp.us/users",{
+    const call=await fetch("https://todoo.5xcamp.us/users",{
       headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       },
       method:"POST",
+      body:JSON.stringify({user:data})
     })
-    const fetchData = await fetch.json()
-    console.log(fetchData)
+
+    const fetchData = await call.json()
+    if(call.status!==200) return alert("註冊失敗")
+    if(call.status===200){
+      setToken(call.headers.get("authorization"))
+      sessionStorage.setItem("nickname",fetchData.nickname)
+      localStorage.setItem("token",call.headers.get("authorization"))
+      alert(fetchData.message)
+      navigate("/todo")
+    }
   }
 
   return (
@@ -48,6 +58,7 @@ export default function SignUp() {
                 register={{
                   ...register("email", {
                     required: { value: true, message: "此欄位不可留空" },
+                    pattern: { value: /^\S+@\S+$/i, message: "不符合 Email 規則" },
                   }),
                 }}
               />
@@ -57,10 +68,10 @@ export default function SignUp() {
                 labelText="您的暱稱"
                 cssClass="formControls_input"
                 type="text"
-                id="name"
+                id="nickname"
                 placeholder="請輸入您的暱稱"
                 register={{
-                  ...register("name", {
+                  ...register("nickname", {
                     required: { value: true, message: "此欄位不可留空" },
                     minLength:{value:2 , message:"暱稱最少需兩個字"},
                   }),

@@ -1,25 +1,57 @@
-import logo from "./img/logo.svg";
+
 import work2 from "./img/work2.png";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { v4 } from "uuid";
 import { useNavigate } from "react-router-dom";
+import { Input, Button, Token, fetchFn } from "./components/htmlElement"
+import { useForm } from "react-hook-form"
 
-export default function Todo() {
-  let navigate = useNavigate()
+export default function Todo({setToken}) {
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+  const navigate = useNavigate()
+  const myToken = useContext(Token)
   const [activePage, setActivePage] = useState("全部");
-  const [list, setList] = useState([
-    { text: "吃飽飽", status: true, id: 0 },
-    { text: "去上班", status: false, id: 1 },
-  ]);
+  const [list, setList] = useState([]);
   const [pageList, setPageList] = useState([
     { page: "全部", active: true },
     { page: "待完成", active: false },
     { page: "已完成", active: false },
   ]);
 
+  useEffect(()=>{
+    let check= async()=>{
+      if(localStorage.getItem("token")){
+        await setToken(localStorage.getItem("token"))
+        await getTodo()
+        return
+      }
+      if(!myToken)navigate("/");
+    }
+
+    check()
+
+  },[])
+
+
+  const getTodo = async()=>{
+    const call = await fetch("https://todoo.5xcamp.us/todos",{
+      headers: {
+        'accept': 'application/json',
+        'content-Type': 'application/json',
+        'authorization':myToken,
+      },
+      method:"GET",
+    })
+    const fetchData = await call.json()
+    console.log(fetchData)
+    if(call.status!==200) return alert(fetchData.message)
+    if(call.status===200) setList(fetchData.todos)
+  }
+
+
   const removeFinish = (e) => {
     e.preventDefault();
-    setList(list.filter((v) => v.status === false));
+    setList(list.filter((v) => v.completed_at === false));
   };
 
   function Navbar() {
@@ -40,15 +72,19 @@ export default function Todo() {
               fetch("https://todoo.5xcamp.us/users/sign_out",{
                 headers: {
                   'Accept': 'application/json',
-                  'Content-Type': 'application/json'
+                  'Content-Type': 'application/json',
+                  'authorization':myToken,
               },
               method:"DELETE",
               })
               .then(res=>{
-                if(res.status===200) navigate("/");
-                if(res.status===401) alert("登出失敗");
+                if(res.status===200) {
+                  localStorage.removeItem("token")
+                  navigate("/");
+                  return 
+                }
+                if(res.status!==200) alert("登出失敗");
                 console.log(res)
-                console.log(res.json())
               })
             }}>登出</a>
           </li>
@@ -58,38 +94,30 @@ export default function Todo() {
   }
 
   function InputArea({ setList, list }) {
-    const [inputText, setInputText] = useState("");
-    const hendleText = (e) => {
-      setInputText(e.target.value);
-    };
-
-    const addText = (e) => {
-      e.preventDefault();
-      let inputEle = document.querySelector("#text");
-      setList((list) => [
-        ...list,
-        {
-          ["text"]: inputEle.value,
-          ["status"]: false,
-          ["id"]: Math.max(...list.map((v) => v.id)) + 1,
-        },
-      ]);
-      setInputText("");
+  
+    const addText = async(data) => {
+      console.log(data)
+      const call = await fetchFn("todos","POST",true,myToken,{"todo":data})
+      const fetchData = await call.json()
+      // console.log(call)
+      // console.log(fetchData)
+      if(call.status!==201) return alert(fetchData.message)
+      if(call.status===201) {
+        setValue("content","")
+        getTodo()
+      };
     };
 
     return (
-      <div className="inputBox">
-        <input
-          type="text"
-          placeholder="請輸入待辦事項"
-          id="text"
-          onChange={hendleText}
-          value={inputText}
-        />
-        <a href="#" onClick={addText}>
-          <i className="fa fa-plus"></i>
-        </a>
-      </div>
+      <form className="inputBox" onSubmit={handleSubmit(addText)}>
+        <Input type="text" id="content" placeholder="請輸入待辦事項" 
+                register={{
+                  ...register("content", {
+                    required: true ,
+                  }),
+                }}/>
+        <Button type="button" text={ <i className="fa fa-plus"></i>} onClick={handleSubmit(addText)}/>
+      </form>
     );
   }
 
@@ -98,26 +126,24 @@ export default function Todo() {
     const changeStatus = (e) => {
       const { checked } = e.target;
       let ta = {
-        text: text,
+        content: text,
         status: checked,
         id: parseInt(e.target.getAttribute("index")),
       };
-      // console.log(ta)
-      setList(
-        list.map((v, i) => {
-          if (ta.id === v.id) return (v = ta);
-          return v;
-        })
-      );
     };
-    const removeOne = (e) => {
-    //   console.log(index);
-      setList(list.filter((v, i) => i !== index));
+    const removeOne = async(e) => {
+      e.preventDefault();
+      let id = e.target.closest("label").getAttribute("index")
+      const call = await fetchFn(`todos/${id}`,"DELETE",true,myToken)
+      if(call.status===200){
+        console.log("刪除成功")
+        getTodo()
+      }
     };
 
     return (
       <li key={v4()}>
-        <label className="todoList_label">
+        <label className="todoList_label" index={index}>
           <input
             index={index}
             onClick={changeStatus}
@@ -125,11 +151,11 @@ export default function Todo() {
             type="checkbox"
             defaultChecked={status}
           />
-          <span>{text}</span>
+          <span className=" flex-grow:1">{text}</span>
+          <a href="#" onClick={removeOne}>
+            <i className="fa fa-times t:17px"></i>
+          </a>
         </label>
-        <a href="#" onClick={removeOne}>
-          <i className="fa fa-times"></i>
-        </a>
       </li>
     );
   }
@@ -137,6 +163,7 @@ export default function Todo() {
   //分類頁籤
   function PageTab({ pageList, setPageList, setActivePage }) {
     const tabSwitch = (e) => {
+      e.preventDefault();
       const index = e.target.getAttribute("index");
       setPageList(
         pageList.map((v, j) => {
@@ -174,8 +201,8 @@ export default function Todo() {
           return (
             <ListDetail
               key={v4()}
-              status={v.status}
-              text={v.text}
+              status={!(v.completed_at ===null)}
+              text={v.content}
               index={v.id}
               list={list}
               setList={setList}
@@ -184,13 +211,13 @@ export default function Todo() {
         })
       : activePage === "待完成"
       ? list
-          .filter((v) => v.status == false)
+          .filter((v) => v.completed_at == false)
           .map((v, i) => {
             return (
               <ListDetail
                 key={v4()}
-                status={v.status}
-                text={v.text}
+                status={!(v.completed_at ===null)}
+                text={v.content}
                 index={v.id}
                 list={list}
                 setList={setList}
@@ -198,13 +225,13 @@ export default function Todo() {
             );
           })
       : list
-          .filter((v) => v.status == true)
+          .filter((v) => v.completed_at == true)
           .map((v, i) => {
             return (
               <ListDetail
                 key={v4()}
-                status={v.status}
-                text={v.text}
+                status={!(v.completed_at ===null)}
+                text={v.content}
                 index={v.id}
                 list={list}
                 setList={setList}
@@ -244,7 +271,7 @@ export default function Todo() {
                 <div className="todoList_statistics">
                   <p>
                     {" "}
-                    {list.filter((v) => v.status === true).length} 個已完成項目
+                    {list.filter((v) => v.completed_at !== null).length} 個已完成項目
                   </p>
                   <a href="#" onClick={removeFinish}>
                     清除已完成項目
@@ -255,11 +282,13 @@ export default function Todo() {
     )
   }
 
+  const divHeight = document.querySelector("nav")?window.innerHeight-document.querySelector("nav").offsetHeight-40:0
+
   return (
     <>
       <div id="todoListPage" className="bg-half">
         <Navbar />
-        <div className="conatiner todoListPage vhContainer">
+        <div className={`conatiner todoListPage vhContainer max-h:${divHeight}px overflow:auto`}>
           <div className="todoList_Content">
             <InputArea list={list} setList={setList} />
             {list.length===0?<ListNone/>:<ListShow/>}
