@@ -110,6 +110,7 @@ export default function Todo({setToken}) {
   
     const addText = async(data) => {
       // console.log(data)
+      if(data.content.trim()==="")return alert("請輸入文字")
       const call = await fetchFn("todos","POST",true,myToken,{"todo":data})
       const fetchData = await call.json()
       // console.log(call)
@@ -122,7 +123,7 @@ export default function Todo({setToken}) {
     };
 
     return (
-      <form className="inputBox" onSubmit={handleSubmit(addText)}>
+      <form className="inputBox rel" onSubmit={handleSubmit(addText)}>
         <Input type="text" id="content" placeholder="請輸入待辦事項" 
                 register={{
                   ...register("content", {

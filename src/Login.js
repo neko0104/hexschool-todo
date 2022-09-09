@@ -22,7 +22,7 @@ export default function Login ({setToken}) {
         })
         
         const fetchData = await call.json()
-        if(call.status!==200)return alert("登入失敗")
+        if(call.status!==200)return alert(fetchData.error)
         if(call.status===200){
           // console.log(fetchData)
           setToken(call.headers.get("authorization"))
