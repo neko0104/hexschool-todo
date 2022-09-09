@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/hexschool-todo/static/css/main.188c780e.css",
-    "main.js": "/hexschool-todo/static/js/main.29b2364f.js",
+    "main.js": "/hexschool-todo/static/js/main.a3a40cfb.js",
     "static/media/workImg.png": "/hexschool-todo/static/media/workImg.980d51fee069e660a49b.png",
     "static/media/work2.png": "/hexschool-todo/static/media/work2.8d4dd3e18c11a0dba1d6.png",
     "static/media/logo.svg": "/hexschool-todo/static/media/logo.403a4085b5d73d81486339a4e86f75f5.svg",
     "index.html": "/hexschool-todo/index.html",
     "main.188c780e.css.map": "/hexschool-todo/static/css/main.188c780e.css.map",
-    "main.29b2364f.js.map": "/hexschool-todo/static/js/main.29b2364f.js.map"
+    "main.a3a40cfb.js.map": "/hexschool-todo/static/js/main.a3a40cfb.js.map"
   },
   "entrypoints": [
     "static/css/main.188c780e.css",
-    "static/js/main.29b2364f.js"
+    "static/js/main.a3a40cfb.js"
   ]
 }
